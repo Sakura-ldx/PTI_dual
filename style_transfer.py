@@ -107,7 +107,9 @@ if __name__ == "__main__":
         img_rec, instyle = encoder(F.adaptive_avg_pool2d(I, 256), randomize_noise=False, return_latents=True, 
                                    z_plus_latent=True, return_z_plus_latent=True, resize=False)
         img_rec = torch.clamp(img_rec.detach(), -1, 1)
-        instyle_pti, encoder.decoder = pti(instyle, img_rec, True)
+        instyle_pti, result_images = pti(instyle, img_rec, True)
+        instyle_pti = instyle_pti[0]
+        img_rec = torch.clamp(result_images[0].detach(), -1, 1)
         viz += [img_rec]
 
         stylename = list(exstyles.keys())[args.style_id]
@@ -128,8 +130,8 @@ if __name__ == "__main__":
         # z_plus_latent: instyle is in Z+ space
         # use_res: use extrinsic style path, or the style is not transferred
         # interp_weights: weight vector for style combination of two paths
-        img_gen, _ = generator([instyle], exstyle, input_is_latent=False, z_plus_latent=True,
-                              truncation=args.truncation, truncation_latent=0, use_res=True, interp_weights=args.weight)
+        img_gen, _ = generator([instyle_pti], exstyle, input_is_latent=False, z_plus_latent=True,
+                               truncation=args.truncation, truncation_latent=0, use_res=True, interp_weights=args.weight)
         img_gen = torch.clamp(img_gen.detach(), -1, 1)
         viz += [img_gen]
 
@@ -137,7 +139,7 @@ if __name__ == "__main__":
     
     save_name = args.name+'_%d_%s'%(args.style_id, os.path.basename(args.content).split('.')[0])
     save_image(torchvision.utils.make_grid(F.adaptive_avg_pool2d(torch.cat(viz, dim=0), 256), 4, 2).cpu(), 
-               os.path.join(args.output_path, save_name+'_overview.jpg'))
-    save_image(img_gen[0].cpu(), os.path.join(args.output_path, save_name+'.jpg'))
+               os.path.join(args.output_path, save_name+'pti2_overview.jpg'))
+    save_image(img_gen[0].cpu(), os.path.join(args.output_path, save_name + 'pti2.jpg'))
 
     print('Save images successfully!')

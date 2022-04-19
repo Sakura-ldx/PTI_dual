@@ -45,6 +45,7 @@ class PTI(nn.Module):
                                                                    self.G, False, z_pivot)
 
                     self.optimizer.zero_grad()
+                    loss.requires_grad = True
                     loss.backward()
                     self.optimizer.step()
 
@@ -52,7 +53,15 @@ class PTI(nn.Module):
 
                     # global_config.training_step += 1
 
-        return z_pivots, self.G
+        result_images = []
+        for z_pivot in z_pivots:
+            generated_images, _ = self.G([z_pivot],
+                                         input_is_latent=False,
+                                         return_latents=False,
+                                         z_plus_latent=True)
+            result_images.append(generated_images)
+
+        return z_pivots, result_images
 
     def calc_loss(self, generated_images, real_images, new_G, use_ball_holder, w_batch):
         loss = 0.0
