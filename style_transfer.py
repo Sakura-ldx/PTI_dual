@@ -107,7 +107,7 @@ if __name__ == "__main__":
         img_rec, instyle = encoder(F.adaptive_avg_pool2d(I, 256), randomize_noise=False, return_latents=True, 
                                    z_plus_latent=True, return_z_plus_latent=True, resize=False)
         img_rec = torch.clamp(img_rec.detach(), -1, 1)
-        instyle_pti, result_images = pti(instyle, img_rec, True)
+        instyle_pti, result_images = pti(instyle, I, True)
         instyle_pti = instyle_pti[0]
         img_rec = torch.clamp(result_images[0].detach(), -1, 1)
         viz += [img_rec]
