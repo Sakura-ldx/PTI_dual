@@ -37,7 +37,7 @@ def project(
         if verbose:
             print(*args)
 
-    G = copy.deepcopy(G).eval().requires_grad_(False).to(device).float() # type: ignore
+    G = copy.deepcopy(G).eval().requires_grad_(False).to(device).float()    # type: ignore
 
     # Compute w stats.
     logprint(f'Computing W midpoint and stddev using {w_avg_samples} samples...')

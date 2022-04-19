@@ -16,7 +16,7 @@ class TestOptions():
     def __init__(self):
 
         self.parser = argparse.ArgumentParser(description="Exemplar-Based Style Transfer")
-        self.parser.add_argument("--content", type=str, default='./data/content/081680.jpg', help="path of the content image")
+        self.parser.add_argument("--content", type=str, default='./data/content/birth.jpg', help="path of the content image")
         self.parser.add_argument("--style", type=str, default='cartoon', help="target style type")
         self.parser.add_argument("--style_id", type=int, default=53, help="the id of the style image")
         self.parser.add_argument("--truncation", type=float, default=0.75, help="truncation for intrinsic style code (content)")
@@ -101,14 +101,15 @@ if __name__ == "__main__":
             I = F.adaptive_avg_pool2d(I, 1024)
         else:
             I = load_image(args.content).to(device)
+            I = F.adaptive_avg_pool2d(I, 1024)
         viz += [I]
 
         # reconstructed content image and its intrinsic style code
         img_rec, instyle = encoder(F.adaptive_avg_pool2d(I, 256), randomize_noise=False, return_latents=True, 
                                    z_plus_latent=True, return_z_plus_latent=True, resize=False)
         img_rec = torch.clamp(img_rec.detach(), -1, 1)
-        instyle_pti, result_images = pti(instyle, img_rec, True)
-        instyle_pti = instyle_pti[0]
+        instyle, result_images = pti(instyle, I, True)
+        instyle = instyle[0]
         img_rec = torch.clamp(result_images[0].detach(), -1, 1)
         viz += [img_rec]
 
@@ -130,7 +131,7 @@ if __name__ == "__main__":
         # z_plus_latent: instyle is in Z+ space
         # use_res: use extrinsic style path, or the style is not transferred
         # interp_weights: weight vector for style combination of two paths
-        img_gen, _ = generator([instyle_pti], exstyle, input_is_latent=False, z_plus_latent=True,
+        img_gen, _ = generator([instyle], exstyle, input_is_latent=False, z_plus_latent=True,
                                truncation=args.truncation, truncation_latent=0, use_res=True, interp_weights=args.weight)
         img_gen = torch.clamp(img_gen.detach(), -1, 1)
         viz += [img_gen]
